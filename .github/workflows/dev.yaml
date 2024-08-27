@@ -2,7 +2,7 @@ name: Pull dockerhub
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "deploy-dev" ]
     
 env:
         DCREPOSITORY: alifbank/gpt-translator-service
