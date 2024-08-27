@@ -35,4 +35,4 @@ spec:
             #   name: rabbitmq-tls
             #   readOnly: true
       imagePullSecrets:
-        - name: docker-cred
+        - name: dockercred
