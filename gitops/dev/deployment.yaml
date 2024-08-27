@@ -12,7 +12,7 @@ spec:
     metadata:
       labels:
         app: gtp-translate
-   spec:
+    spec:
     #   volumes:
     #     - name: rabbitmq-tls
     #       secret:
