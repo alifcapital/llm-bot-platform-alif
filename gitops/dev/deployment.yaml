@@ -19,7 +19,7 @@ spec:
     #         secretName: rabbitmq-tls
       containers:
         - name: gtp-translate
-          image: alifbank/gpt-translator-service:0cb87510c937a543af76f2203232819216f4b56f
+          image: alifbank/gpt-translator-service:5d0c281dd765cdeef34a0be8133964629b35e0c5
           imagePullPolicy: Always
           ports:
             - containerPort: 8001  
