@@ -5,9 +5,9 @@ metadata:
   namespace: ml
 spec:
   ports:
-    - port: 80
+    - port: 8001
       name: gtp-translate-scoring
       protocol: TCP
-      targetPort: 80
+      targetPort: 8001
   selector:
     app: gtp-translate
