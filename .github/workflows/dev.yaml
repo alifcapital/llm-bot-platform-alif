@@ -6,7 +6,8 @@ on:
     
 env:
         DCREPOSITORY: alifbank/gpt-translator-service
-        IMAGE_TAG: '${{ github.sha }}'           
+        IMAGE_TAG: '${{ github.sha }}'
+        TELEGRAM_BOT_TOKEN: ${{ secrets.OPENAI_API_KEY }}         
        
 
 jobs:

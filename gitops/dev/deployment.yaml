@@ -13,26 +13,18 @@ spec:
       labels:
         app: gtp-translate
     spec:
-    #   volumes:
-    #     - name: rabbitmq-tls
-    #       secret:
-    #         secretName: rabbitmq-tls
       containers:
         - name: gtp-translate
           image: alifbank/gpt-translator-service:5d0c281dd765cdeef34a0be8133964629b35e0c5
           imagePullPolicy: Always
           ports:
             - containerPort: 8001  
-          # resources:
-          #   limits:
-          #     cpu: 150m
-          #     memory: 256Mi
+          resources:
+            limits:
+              cpu: 150m
+              memory: 256Mi
           envFrom:
-            # - configMapRef:
-            #     name: gtp-translate-svc-env
-          volumeMounts:
-            # - mountPath: "/rabbitmq/tls"
-            #   name: rabbitmq-tls
-            #   readOnly: true
+            - configMapRef:
+                name: gtp-translate-svc-env
       imagePullSecrets:
         - name: dockercred
