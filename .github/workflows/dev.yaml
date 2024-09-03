@@ -31,6 +31,9 @@ jobs:
       run: |
         docker build -t $DCREPOSITORY:$IMAGE_TAG .
         docker push $DCREPOSITORY:$IMAGE_TAG 
+    - name: rm env
+      run: |
+        rm .env
     - name: Export it to gitops
       run: |
         export FULL_IMAGE_PATH=$DCREPOSITORY:$IMAGE_TAG
