@@ -24,7 +24,9 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
+    - name: echo env
+      run: |
+        echo '${{ secrets.OPENAI_API_KEY }}' > .env
     - name: Build, tag, and push image to DockerHub
       run: |
         docker build -t $DCREPOSITORY:$IMAGE_TAG .
