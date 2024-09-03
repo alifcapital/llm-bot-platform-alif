@@ -8,4 +8,4 @@ RUN pip3 install -r /tmp/requirements.txt
 
 WORKDIR /app
 
-# CMD ["python3", "main.py"]
+CMD ["python3", "main.py"]
