@@ -1,8 +1,10 @@
 Flask==2.2.2
 Flask-WTF==1.0.1
+Werkzeug==2.2.2
 tqdm==4.64.1
 python-docx
-openai 
+openai
+loguru
 langchain 
 langchain-openai 
 langchain-experimental
