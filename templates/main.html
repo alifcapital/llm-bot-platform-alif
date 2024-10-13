@@ -14,28 +14,11 @@
     </div>
     
     <div class="container">
+      <H1><a href={{ url_for('main') }}>На главную</a></H1>
+      <hr>
       {% block content %}
-        <div class="container mt-4">
-          <form action={{ url_for('main') }} method="POST" enctype="multipart/form-data">
-            {{ form.hidden_tag() }}
-
-            {% for field in form if field.name != "csrf_token" %}
-              <div class="row">
-                <div class="col-sm-12">
-                  <h1>{{ field.label }}</h1>
-
-                  <p>{{ field(class='form-control') }}</p>
-                </div>
-              </div>
-            {% endfor %}
-
-            <div class="row">
-              <div class="col-sm-4">
-                <button type="submit" class="btn btn-primary mt-4">Перевести</button>
-              </div>
-            </div>
-          </form>
-        </div>
+        <H1><a href={{ url_for('translate') }}>Перевод текста</a></H1>
+        <H1><a href={{ url_for('rag') }}>Получить ответ по дкументации</a></H1>
       {% endblock %}
     </div>
     <!-- Optional JavaScript -->

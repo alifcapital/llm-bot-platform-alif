@@ -1,0 +1,32 @@
+{% extends 'main.html' %}
+
+  {% block content %}
+
+  <div class="container mt-4">
+    <form action={{ url_for('rag') }} method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+
+      {% for field in form if field.name != "csrf_token" %}
+        <div class="row">
+          <div class="col-sm-12">
+            <h1>{{ field.label }}</h1>
+
+            <p>{{ field(class='form-control') }}</p>
+          </div>
+        </div>
+      {% endfor %}
+
+      <div class="row">
+        <div class="col-sm-4">
+          <button type="submit" class="btn btn-primary mt-4">Задать вопрос</button>
+        </div>
+      </div>
+    </form>
+
+    {% if answer%}
+      <H1>Отевт</H1>
+      <H3>{{answer}}</H3>
+    {% endif %}
+
+  </div>
+  {% endblock %}

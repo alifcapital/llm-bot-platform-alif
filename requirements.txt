@@ -8,3 +8,6 @@ loguru
 langchain 
 langchain-openai 
 langchain-experimental
+faiss-gpu
+unstructured
+langchain[docarray]
