@@ -12,5 +12,6 @@ COPY main.py /app/main.py
 COPY forms.py /app/forms.py
 COPY gpt_api_class.py /app/gpt_api_class.py
 COPY templates /app/templates
+COPY RAG /app/RAG
 
 CMD ["python3", "main.py"]
