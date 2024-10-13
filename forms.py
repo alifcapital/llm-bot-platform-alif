@@ -6,3 +6,6 @@ from wtforms.fields import FieldList
 
 class TranslateForm(FlaskForm):
     file = FileField('Word файл с данными: ', validators=[FileRequired()])
+
+class RAGForm(FlaskForm):
+    query = StringField('Ваш вопрос: ', validators=[InputRequired()])
