@@ -18,7 +18,7 @@ spec:
           image: alifbank/gpt-translator-service:5d0c281dd765cdeef34a0be8133964629b35e0c5
           imagePullPolicy: Always
           ports:
-            - containerPort: 8001  
+            - containerPort: 8000  
           resources:
             limits:
               cpu: 150m
