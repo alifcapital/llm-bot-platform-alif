@@ -8,4 +8,4 @@
 
 `docker build -t gpt .` - сборка контейнера
 
-`docker run -it --rm -p 8000:8000 -v %cd%:/app -e OPENAI_API_KEY=YOUR_KEY gpt`
+`docker run -it --rm -p 8001:8001 -v %cd%:/app -e OPENAI_API_KEY=YOUR_KEY gpt`

@@ -16,6 +16,10 @@ from langchain.indexes import VectorstoreIndexCreator
 from langchain.agents.agent_types import AgentType
 from langchain_experimental.agents.agent_toolkits.csv.base import create_csv_agent
 
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain import hub
+
 
 class GPT_API():
 
@@ -51,18 +55,23 @@ class RAG():
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.load_local("RAG/frontend", embeddings, allow_dangerous_deserialization=True)
 
-        llm = ChatOpenAI(temperature=0.7, model_name="gpt-4o-mini")
-        memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-        self.conversation_chain = ConversationalRetrievalChain.from_llm(
-            llm=llm,
-            chain_type="stuff",
-            retriever=vectorstore.as_retriever(),
-            memory=memory
+        prompt = hub.pull("rlm/rag-prompt")
+
+        llm = ChatOpenAI(temperature=0.0, model_name="gpt-4o-mini")
+        self.rag_chain = (
+            {"context": vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 10}) | self.__format_docs, "question": RunnablePassthrough()}
+            | prompt
+            | llm
+            | StrOutputParser()
         )
+
+
+    def __format_docs(self, docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
 
     def execute_query(self, query):
         with get_openai_callback() as cb:
-            result = self.conversation_chain({"question": query})
-            answer = result["answer"]
+            answer = self.rag_chain.invoke(query)
         logger.info(f"Query cost {cb.total_cost}")
         return answer
