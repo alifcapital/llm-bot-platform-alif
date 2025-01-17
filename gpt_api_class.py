@@ -53,7 +53,7 @@ class GPT_API():
 class RAG():
     def __init__(self, model="gpt-4o-mini", temperature=0.7):
         embeddings = OpenAIEmbeddings()
-        vectorstore = FAISS.load_local("RAG/frontend", embeddings, allow_dangerous_deserialization=True)
+        vectorstore = FAISS.load_local("RAG/front", embeddings, allow_dangerous_deserialization=True)
 
         prompt = hub.pull("rlm/rag-prompt")
 
