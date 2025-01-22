@@ -51,13 +51,17 @@ class GPT_API():
     
 
 class RAG():
-    def __init__(self, model="gpt-4o-mini", temperature=0.7):
+    def __init__(self, model="gpt-4o-mini", temperature=0.0):
         embeddings = OpenAIEmbeddings()
         vectorstore = FAISS.load_local("RAG/front", embeddings, allow_dangerous_deserialization=True)
 
         prompt = hub.pull("rlm/rag-prompt")
+        prompt.messages[0].prompt.template = """You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
+        If you don't know the answer, just say that you don't know. 
+        The answer should be in the sources, do not abbreviate the answers and it is important that the context is conveyed in clear words. 
+        If the answer is in both sources, give priority to the source ‘Javob’If the answer in the source ‘Javob’ contains a link to the image, please display the link in your answer. \nQuestion: {question} \nContext: {context} \nAnswer"""
 
-        llm = ChatOpenAI(temperature=0.0, model_name="gpt-4o-mini")
+        llm = ChatOpenAI(temperature=temperature, model_name="gpt-4o-mini")
         self.rag_chain = (
             {"context": vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 10}) | self.__format_docs, "question": RunnablePassthrough()}
             | prompt
