@@ -79,7 +79,6 @@ jobs:
         export FULL_IMAGE_PATH=$DCREPOSITORY:bot-$IMAGE_TAG
         sed -i "s|\(^\s*image:\s*\).*|\1$FULL_IMAGE_PATH|g" gitops/dev/deployment-bot.yaml 
         cat gitops/dev/deployment-bot.yaml
-        mv gitops/dev/deployment-bot.yaml gitops/dev/deployment.yaml 
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add .
