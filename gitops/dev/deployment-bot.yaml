@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gtp-translate
+  namespace: ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gtp-translate
+  template:
+    metadata:
+      labels:
+        app: gtp-translate
+    spec:
+      containers:
+        - name: gtp-translate
+          image: alifbank/gpt-translator-service:5d0c281dd765cdeef34a0be8133964629b35e0c5
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000  
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          envFrom:
+            - configMapRef:
+                name: gtp-translate-svc-env
+      imagePullSecrets:
+        - name: dockercred
