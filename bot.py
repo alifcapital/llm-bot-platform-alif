@@ -1,7 +1,7 @@
 import os
 import telebot
 
-from loguru import logger
+import logging
 
 from gpt_api_class import GPT_API, RAG
 
@@ -16,6 +16,9 @@ if not TELEGRAM_TOKEN:
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 gpt_rag = RAG()
 
+# Настройка логгера
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def check_auth(message):
     """Проверяет username пользователя"""
