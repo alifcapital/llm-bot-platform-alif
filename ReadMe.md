@@ -8,6 +8,8 @@
 
 `docker build -t gpt .` - сборка контейнера
 
+`docker build -f Dockerfile_bot -t gpt-bot .` - сборка контейнера
+
 `docker run -it --rm -p 8000:8000 -v %cd%:/app --env-file .env gpt bash`
 
 # Выгрузка статей с javob.alif.tj
