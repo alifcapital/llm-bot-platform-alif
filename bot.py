@@ -1,6 +1,7 @@
 import os
 import telebot
-import logging
+
+from loguru import logger
 
 from gpt_api_class import GPT_API, RAG
 
@@ -15,25 +16,32 @@ if not TELEGRAM_TOKEN:
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 gpt_rag = RAG()
 
-# Настройка логгера
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 def check_auth(message):
     """Проверяет username пользователя"""
     user = message.from_user
+    user_id = user.id
     username = f"@{user.username}" if user.username else "без username"
-    
+
+    log_data = {
+        'user_id': user_id,
+        'username': f"{username}" if username else "None",
+        'first_name': user.first_name,
+        'last_name': user.last_name
+    }
+
     if not user.username:
         bot.send_message(message.chat.id, "❌ У вас не установлен username в Telegram!")
-        logger.warning(f"Попытка доступа от пользователя без username: ID {user.id}")
+        logger.warning(f"Попытка несанкционированного доступа: {log_data}")
         return False
         
     if user.username not in ALLOWED_USERNAMES:
-        logger.warning(f"Доступ запрещен для @{user.username} (ID: {user.id})")
+        logger.warning(f"Доступ запрещен для: {log_data}")
         bot.send_message(message.chat.id, "⛔ Доступ запрещен. Ваш username не в белом списке.")
         return False
-        
+    
+    logger.info(f"Доступ разрешен: {log_data}")
+
     return True
 
 # Команда /start
