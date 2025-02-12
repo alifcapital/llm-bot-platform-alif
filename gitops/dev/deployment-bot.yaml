@@ -22,7 +22,7 @@ spec:
           resources:
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 128Mi
           envFrom:
             - configMapRef:
                 name: gtp-translate-svc-env
