@@ -24,8 +24,8 @@ def has_cyrillic(text):
 
 
 @app.route('/')
-def main():  
-     return render_template('main.html')
+def main():
+    return render_template('main.html')
 
 
 @app.route('/translate', methods=["POST", "GET"])

@@ -34,6 +34,21 @@ class GPT_API():
 """
 
     def invoke(self, text):
+        """
+        Invokes the language model with the provided text using the template.
+        
+        This method takes the input text, formats it using the predefined template,
+        and sends it to the OpenAI LLM. It tracks the cost of the API call and
+        returns both the response and the cost information.
+        
+        Args:
+            text (str): The input text to be processed by the language model.
+            
+        Returns:
+            tuple: A tuple containing:
+                - gpt_response (str): The text response from the language model.
+                - total_cost (float): The cost of the API call in USD.
+        """
         # Составляем промт
         valiables = {'text': str(text)}
         prompt = PromptTemplate(template=self.template, input_variables=["text"])
@@ -59,7 +74,7 @@ class RAG():
         prompt.messages[0].prompt.template = """You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
         If you don't know the answer, just say that you don't know. 
         The answer should be in the sources, do not abbreviate the answers and it is important that the context is conveyed in clear words. 
-        If the answer is in both sources, give priority to the source ‘Javob’If the answer in the source ‘Javob’ contains a link to the image, please display the link in your answer. \nQuestion: {question} \nContext: {context} \nAnswer"""
+        If the answer is in both sources, give priority to the source 'Javob'If the answer in the source 'Javob' contains a link to the image, please display the link in your answer. \nQuestion: {question} \nContext: {context} \nAnswer"""
 
         llm = ChatOpenAI(temperature=temperature, model_name="gpt-4o-mini")
         self.rag_chain = (
