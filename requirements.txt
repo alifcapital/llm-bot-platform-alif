@@ -12,3 +12,4 @@ faiss-gpu
 unstructured
 langchain[docarray]
 pyTelegramBotAPI
+numpy==1.26
