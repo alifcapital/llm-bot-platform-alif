@@ -1,5 +1,6 @@
 import os
 
+
 from tqdm import tqdm
 from loguru import logger
 from langchain_openai import ChatOpenAI
@@ -15,82 +16,116 @@ from langchain.memory import ConversationBufferMemory, ConversationBufferMemory
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.agents.agent_types import AgentType
 from langchain_experimental.agents.agent_toolkits.csv.base import create_csv_agent
+from typing import List
+from langchain.docstore.document import Document
+from langchain.vectorstores import FAISS
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain.prompts import PromptTemplate
+from langchain.chat_models import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+
+from rank_bm25 import BM25Okapi
+from sentence_transformers import CrossEncoder
+import numpy as np
+import logging
+
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain import hub
 
+import os
+from dotenv import load_dotenv
 
-class GPT_API():
+load_dotenv()
 
-    def __init__(self, model="gpt-4o-mini", temperature=0.3):
-        self.openai_llm = ChatOpenAI(model=model, temperature=temperature)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-        self.template = """
-###Instruction###
-Переведи текст на таджикский. В ответе верни только переведенное предложение
-###Data###
-{text}
-"""
+class HR_RAG:
+    def __init__(self, model="gpt-4o-mini", temperature=0.0, alpha=0.5):
+        self.embeddings = OpenAIEmbeddings()
+        self.vectorstore = FAISS.load_local("RAG/HR", self.embeddings, allow_dangerous_deserialization=True)
+        self.alpha = alpha  # 0 = только BM25, 1 = только reranker
 
-    def invoke(self, text):
-        """
-        Invokes the language model with the provided text using the template.
-        
-        This method takes the input text, formats it using the predefined template,
-        and sends it to the OpenAI LLM. It tracks the cost of the API call and
-        returns both the response and the cost information.
-        
-        Args:
-            text (str): The input text to be processed by the language model.
-            
-        Returns:
-            tuple: A tuple containing:
-                - gpt_response (str): The text response from the language model.
-                - total_cost (float): The cost of the API call in USD.
-        """
-        # Составляем промт
-        valiables = {'text': str(text)}
-        prompt = PromptTemplate(template=self.template, input_variables=["text"])
+        self.reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+        self.llm = ChatOpenAI(model=model, temperature=temperature)
 
-        # Соединяем промт и подключение к LLM
-        llm_chain = LLMChain(prompt=prompt, llm=self.openai_llm)
+        prompt = PromptTemplate(
+            template="""
+Ты — внутренний эксперт по кадровым и нормативным документам компании.
 
-        # Вызваем LLM
-        with get_openai_callback() as cb:
-            response = llm_chain.invoke(valiables)
-            total_cost = cb.total_cost
+На основе предоставленного описания инцидента и контекста из документов, выполни следующие действия:
 
-        gpt_response = response['text']
-        return gpt_response, total_cost
-    
+1. Найди в контексте положения, которые прямо или косвенно относятся к описанному инциденту.
 
-class RAG():
-    def __init__(self, model="gpt-4o-mini", temperature=0.0):
-        embeddings = OpenAIEmbeddings()
-        vectorstore = FAISS.load_local("RAG/front", embeddings, allow_dangerous_deserialization=True)
+2. Для каждого выявленного нарушения укажи:
+- Название документа;
+- Конкретный пункт или раздел;
+- Точный текст нарушенного положения;
+- Объяснение;
+- Тип нарушения (ИБ, конфиденциальность, этика и т.д.);
+- Оценку серьёзности: низкая / средняя / высокая / критическая.
 
-        prompt = hub.pull("rlm/rag-prompt")
-        prompt.messages[0].prompt.template = """You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
-        If you don't know the answer, just say that you don't know. 
-        The answer should be in the sources, do not abbreviate the answers and it is important that the context is conveyed in clear words. 
-        If the answer is in both sources, give priority to the source 'Javob'If the answer in the source 'Javob' contains a link to the image, please display the link in your answer. \nQuestion: {question} \nContext: {context} \nAnswer"""
+Если ничего не подходит — напиши "Нарушения не найдены".
 
-        llm = ChatOpenAI(temperature=temperature, model_name="gpt-4o-mini")
+Контекст:
+{context}
+
+Описание инцидента:
+{question}
+
+Ответ:
+""",
+            input_variables=["context", "question"]
+        )
+
         self.rag_chain = (
-            {"context": vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 10}) | self.__format_docs, "question": RunnablePassthrough()}
+            {
+                "context": self._get_context,
+                "question": RunnablePassthrough()
+            }
             | prompt
-            | llm
+            | self.llm
             | StrOutputParser()
         )
 
+    def _get_context(self, query: str) -> str:
+        vector_results = self.vectorstore.similarity_search(query, k=25)
 
-    def __format_docs(self, docs):
-        return "\n\n".join(doc.page_content for doc in docs)
+        tokenized = [doc.page_content.lower().split() for doc in vector_results]
+        bm25 = BM25Okapi(tokenized)
+        bm25_scores = bm25.get_scores(query.lower().split())
+
+        rerank_inputs = [[query, doc.page_content] for doc in vector_results]
+        reranker_scores = self.reranker.predict(rerank_inputs)
+
+        hybrid_scores = self.alpha * np.array(reranker_scores) + (1 - self.alpha) * np.array(bm25_scores)
+        sorted_docs = [doc for _, doc in sorted(zip(hybrid_scores, vector_results), key=lambda x: x[0], reverse=True)]
+
+        top_docs = sorted_docs[:10]
+        logger.info(f"Отобрано {len(top_docs)} документов по гибридному скору")
+
+        return self._format_docs(top_docs)
+
+    def _format_docs(self, docs: List[Document]) -> str:
+        chunks = []
+        for doc in docs:
+            source = doc.metadata.get("source", "Неизвестный документ")
+            content = doc.page_content.strip()
+            chunks.append(f"Документ: {source}\n{content}")
+        return "\n\n".join(chunks)
 
 
-    def execute_query(self, query):
-        with get_openai_callback() as cb:
-            answer = self.rag_chain.invoke(query)
-        logger.info(f"Query cost {cb.total_cost}")
+    def ask(self, query):
+        answer = self.rag_chain.invoke(query)
         return answer
+
+
+if __name__ == "__main__":
+    rag = HR_RAG()
+    while True:
+        q = input("\nОпиши нарушение (или 'выход'): ")
+        if q.lower() in ["выход", "exit", "quit"]:
+            break
+        print("\nНайденные нарушения:\n", rag.ask(q))
