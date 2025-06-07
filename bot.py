@@ -3,6 +3,7 @@ import telebot
 
 import logging
 
+
 from gpt_api_class import GPT_API, RAG
 
 # Инициализация токена Telegram-бота
