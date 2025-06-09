@@ -1,0 +1,38 @@
+services:
+  bot:
+    image: llm-bot-platform-alif
+    container_name: service
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+    ports:
+      - "5000:5000"
+    volumes:
+      - C:\Users\zheny\Documents\llm-bot-platform-alif:/app
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: postgres_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

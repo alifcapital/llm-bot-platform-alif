@@ -19,6 +19,7 @@ from langchain_experimental.agents.agent_toolkits.csv.base import create_csv_age
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain import hub
+from models import RAGConfig
 
 
 class GPT_API():
@@ -66,28 +67,42 @@ class GPT_API():
     
 
 class RAG():
-    def __init__(self, model="gpt-4o-mini", temperature=0.0):
+    def __init__(self, bot_id, model="gpt-4o-mini", temperature=0.0):
+        # Get RAG configuration from database
+        rag_config = RAGConfig.query.filter_by(bot_id=bot_id).first()
+        if not rag_config:
+            raise ValueError(f"No RAG configuration found for bot_id {bot_id}")
+        
         embeddings = OpenAIEmbeddings()
-        vectorstore = FAISS.load_local("RAG/front", embeddings, allow_dangerous_deserialization=True)
+        vectorstore = FAISS.load_local(
+            rag_config.vectorstore_path, 
+            embeddings, 
+            allow_dangerous_deserialization=True
+        )
 
         prompt = hub.pull("rlm/rag-prompt")
-        prompt.messages[0].prompt.template = """You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
-        If you don't know the answer, just say that you don't know. 
-        The answer should be in the sources, do not abbreviate the answers and it is important that the context is conveyed in clear words. 
-        If the answer is in both sources, give priority to the source 'Javob'If the answer in the source 'Javob' contains a link to the image, please display the link in your answer. \nQuestion: {question} \nContext: {context} \nAnswer"""
+        prompt.messages[0].prompt.template = rag_config.prompt_template
 
-        llm = ChatOpenAI(temperature=temperature, model_name="gpt-4o-mini")
+        llm = ChatOpenAI(
+            temperature=rag_config.temperature or temperature, 
+            model_name=rag_config.model_name or model
+        )
+        
         self.rag_chain = (
-            {"context": vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 10}) | self.__format_docs, "question": RunnablePassthrough()}
+            {
+                "context": vectorstore.as_retriever(
+                    search_type="similarity", 
+                    search_kwargs={"k": 10}
+                ) | self.__format_docs, 
+                "question": RunnablePassthrough()
+            }
             | prompt
             | llm
             | StrOutputParser()
         )
 
-
     def __format_docs(self, docs):
         return "\n\n".join(doc.page_content for doc in docs)
-
 
     def execute_query(self, query):
         with get_openai_callback() as cb:

@@ -10,7 +10,7 @@
 
 `docker build -f Dockerfile_bot -t gpt-bot .` - сборка контейнера
 
-`docker run -it --rm -p 8000:8000 -v %cd%:/app --env-file .env gpt bash`
+`docker run -it --rm -p 5000:5000 -v %cd%:/app --env-file .env llm-bot-platform-alif bash`
 
 # Выгрузка статей с javob.alif.tj
 

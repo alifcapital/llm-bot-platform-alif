@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Chat Bot Platform{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="display-4 mb-4">Welcome to Chat Bot Platform</h1>
+    <p class="lead mb-4">Create and interact with AI-powered chat bots</p>
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4 gap-3">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline-secondary btn-lg px-4">Register</a>
+    </div>
+</div>
+{% endblock %} 

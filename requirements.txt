@@ -8,8 +8,13 @@ loguru
 langchain 
 langchain-openai 
 langchain-experimental
-faiss-gpu
+faiss-cpu
 unstructured
 langchain[docarray]
-pyTelegramBotAPI
 numpy==1.26
+Flask-SQLAlchemy==3.0.2
+Flask-Login==0.6.2
+Flask-Migrate==4.0.4
+psycopg2-binary==2.9.6
+python-dotenv==1.0.0
+email_validator==2.2.0
