@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: nginx  # Добавлен класс Ingress
   rules:
-  - host: open-web-ui.example.com
+  - host: open-web-ui.alif.tj
     http:
       paths:
       - path: /
