@@ -2,17 +2,36 @@ name: Pull dockerhub
 
 on:
   push:
-    branches: [ "main", deploy-openweb ]    
+    branches: [ "main", deploy-openweb ] 
+    
+env:
+        DCREPOSITORY: alifbank/gpt-translator-service
+        IMAGE_TAG: '${{ github.sha }}'
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}         
+       
 
 jobs:
-  build-bot:
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      
+    - name: DockerHub login
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build, tag, and push image to DockerHub
+      run: |
+        docker build -t $DCREPOSITORY:$IMAGE_TAG .
+        docker push $DCREPOSITORY:$IMAGE_TAG 
 
     - name: Export it to gitops bot
       run: |
+        export FULL_IMAGE_PATH=$DCREPOSITORY:$IMAGE_TAG
+        sed -i "s|\(^\s*image:\s*\).*|\1$FULL_IMAGE_PATH|g" gitops/dev/deployment.yaml
         sed -i "s|{{OPENAI_API_KEY}}|${{ secrets.OPENAI_API_KEY }}|g" gitops/dev/configmap.yaml
         
         git config user.name github-actions
