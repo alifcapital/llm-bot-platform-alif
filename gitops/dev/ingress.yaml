@@ -4,8 +4,11 @@ metadata:
   name: open-web-ui-ingress
   namespace: ml
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '600'
+    nginx.ingress.kubernetes.io/proxy-next-upstream: error timeout http_429
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
 spec:
   ingressClassName: nginx  # Добавлен класс Ingress
   rules:
@@ -19,3 +22,7 @@ spec:
             name: open-web-ui-service
             port:
               number: 8080 
+  tls:
+    - hosts:
+        - open-web-ui.alif.tj
+      secretName: tls-aliftj-domain
